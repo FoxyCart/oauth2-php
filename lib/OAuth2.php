@@ -69,8 +69,10 @@ class OAuth2 {
 	 * @var int
 	 * @see OAuth2::setDefaultOptions()
 	 */
-	const DEFAULT_ACCESS_TOKEN_LIFETIME = 3600;
-	const DEFAULT_REFRESH_TOKEN_LIFETIME = 1209600;
+	//const DEFAULT_ACCESS_TOKEN_LIFETIME = 3600; // 1 hour
+	const DEFAULT_ACCESS_TOKEN_LIFETIME = 7200; // 2 hours
+	//const DEFAULT_REFRESH_TOKEN_LIFETIME = 1209600; // 2 weeks
+	const DEFAULT_REFRESH_TOKEN_LIFETIME = 157680000; // 5 years (note, mysql only allows timestamps up to 2037... so keep that in mind)
 	const DEFAULT_AUTH_CODE_LIFETIME = 30;
 	const DEFAULT_WWW_REALM = 'Service';
 	
@@ -773,7 +775,7 @@ class OAuth2 {
 			throw new OAuth2ServerException(self::HTTP_BAD_REQUEST, self::ERROR_INVALID_CLIENT, 'Client id was not found in the headers or body');
 		} else {
 			// This method is not recommended, but is supported by specification
-			return array($inputData['client_id'], $inputData['client_secret']);
+			return array($inputData['client_id'], (isset($inputData['client_secret']) ? $inputData['client_secret'] : ''));
 		}
 	}
 
@@ -999,8 +1001,11 @@ class OAuth2 {
 	 * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-5
 	 * @ingroup oauth2_section_5
 	 */
-	protected function createAccessToken($client_id, $user_id, $scope = NULL) {
-		
+	public function createAccessToken($client_id, $user_id, $scope = NULL) {
+        // MODIFIED BY FoxyCart
+        // We made this method public so we could access it directly in our API
+	    //protected function createAccessToken($client_id, $user_id, $scope = NULL) {
+	    
 		$token = array(
 			"access_token" => $this->genAccessToken(),
 			"expires_in" => $this->getVariable(self::CONFIG_ACCESS_LIFETIME),
